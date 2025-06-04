@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gacha Group Maker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color: white; font-family: Arial, sans-serif; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .title { font-size: 3em; font-weight: bold; background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; opacity: 0.8; margin-bottom: 20px; }
+        .names-display { background: rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 20px; margin-bottom: 20px; max-height: 200px; overflow-y: auto; }
+        .names-display h3 { margin-bottom: 15px; color: #ffd700; }
+        .name-tag { display: inline-block; padding: 3px 8px; margin: 2px; border-radius: 12px; font-size: 0.85em; border: 1px solid; }
+        .rarity-legendary { background: rgba(255, 107, 107, 0.3); border-color: #ffd700; color: #ffd700; }
+        .rarity-epic { background: rgba(155, 89, 182, 0.3); border-color: #9b59b6; color: #9b59b6; }
+        .rarity-rare { background: rgba(52, 152, 219, 0.3); border-color: #3498db; color: #3498db; }
+        .rarity-common { background: rgba(46, 204, 113, 0.3); border-color: #2ecc71; color: #2ecc71; }
+        .controls { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .control-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        input[type="number"] { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 10px; color: white; padding: 10px; font-size: 1.1em; text-align: center; width: 80px; }
+        input[type="number"]:focus { outline: none; border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .gacha-button { background: linear-gradient(135deg, #ff6b6b, #ff8e8e, #ff6b6b); border: none; border-radius: 15px; color: white; font-size: 1.3em; font-weight: bold; padding: 15px 40px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3); text-transform: uppercase; letter-spacing: 1px; }
+        .gacha-button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4); }
+        .gacha-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .gacha-card { background: linear-gradient(135deg, #2a2a4a, #3a3a6a); border: 3px solid #ffd700; border-radius: 20px; padding: 40px; text-align: center; min-width: 300px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+        .loading-text { font-size: 1.5em; margin-bottom: 20px; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .cutscene { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; z-index: 1001; background: black; transition: background-color 0.5s ease; }
+        .cutscene-text { font-size: 5em; font-weight: bold; text-align: center; text-shadow: 0 0 40px rgba(255, 255, 255, 0.9); opacity: 0; transition: opacity 0.5s ease; }
+        .cutscene.show-text .cutscene-text { opacity: 1; }
+        
+        .legendary-particles { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .particle { position: absolute; width: 4px; height: 4px; background: #ffd700; border-radius: 50%; animation: sparkle 1.5s infinite ease-in-out; }
+        @keyframes sparkle { 0% { opacity: 0; transform: scale(0) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(180deg); } 100% { opacity: 0; transform: scale(0) rotate(360deg); } }
+        
+        /* Special Legendary Cutscene Styles */
+        .legendary-cutscene { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; justify-content: center; align-items: center; z-index: 1002; overflow: hidden; }
+        .motorcycle-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .motorcycle-emoji { font-size: 8em; position: absolute; right: -200px; top: 50%; transform: translateY(-50%); transition: all 2s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: drop-shadow(0 0 20px #ffd700); }
+        .motorcycle-emoji.enter { right: 50%; transform: translate(50%, -50%); }
+        .legendary-text { font-size: 6em; font-weight: bold; opacity: 0; text-align: center; background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #9b59b6); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbowText 2s infinite; text-shadow: 0 0 30px #ffd700; transition: opacity 1s ease; }
+        .legendary-text.show { opacity: 1; }
+        @keyframes rainbowText { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .legendary-explosion { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .explosion-particle { position: absolute; width: 8px; height: 8px; border-radius: 50%; animation: explode 1.5s ease-out forwards; }
+        @keyframes explode { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(3) translate(var(--dx), var(--dy)); } }
+        
+        .rarity-banner { font-size: 1em; font-weight: bold; padding: 5px 15px; border-radius: 20px; margin-bottom: 10px; color: white; }
+        .rarity-banner.rarity-legendary { background: linear-gradient(45deg, #ff6b6b, #ffd700, #4ecdc4); }
+        .rarity-banner.rarity-epic { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .rarity-banner.rarity-rare { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .rarity-banner.rarity-common { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        
+        .name-reveal { font-size: 2.5em; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 20px; }
+        .name-reveal.rarity-legendary { background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #9b59b6); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbowText 2s infinite; text-shadow: 0 0 20px #ffd700; }
+        .name-reveal.rarity-epic { color: #9b59b6; text-shadow: 0 0 20px #9b59b6; }
+        .name-reveal.rarity-rare { color: #3498db; text-shadow: 0 0 20px #3498db; }
+        .name-reveal.rarity-common { color: #2ecc71; text-shadow: 0 0 20px #2ecc71; }
+        
+        .arrow { font-size: 2em; color: #ff6b6b; margin: 10px 0; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
+        
+        .group-assignment { font-size: 2em; font-weight: bold; background: linear-gradient(135deg, #ff6b6b, #ff8e8e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding: 10px; border: 2px solid #ff6b6b; border-radius: 15px; margin: 15px 0; }
+        .progress { font-size: 1em; opacity: 0.7; margin-top: 20px; color: #ccc; }
+        .next-btn { background: linear-gradient(135deg, #4ecdc4, #44a08d); border: none; border-radius: 12px; color: white; font-size: 1.2em; font-weight: bold; padding: 12px 25px; cursor: pointer; margin-top: 20px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
+        .next-btn:hover { transform: translateY(-2px); }
+        .close-btn { background: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 10px 20px; border-radius: 10px; margin-top: 20px; cursor: pointer; transition: background 0.3s ease; }
+        .final-results-title { font-size: 2em; font-weight: bold; color: #ffd700; margin-bottom: 20px; }
+        .group-result { font-size: 1.3em; font-weight: bold; color: #ffd700; margin: 10px 0; }
+        .member-list { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 15px; margin: 10px 0; }
+        .member { display: inline-block; color: white; padding: 5px 12px; margin: 3px; border-radius: 20px; font-size: 0.9em; }
+        .member-legendary { background: linear-gradient(135deg, #ff6b6b, #ffd700, #4ecdc4); }
+        .member-epic { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .member-rare { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .member-common { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .group-summary { margin-bottom: 20px; }
+        .single-reveal { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">✨ Gacha Group Maker ✨</h1>
+            <p class="subtitle">Create epic groups with gacha-style reveals!</p>
+        </div>
+
+        <div class="names-display">
+            <h3>Current Names (26 total)</h3>
+            <div id="namesList"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Number of Groups</label>
+                <input type="number" id="groupCount" min="2" max="13" value="5" />
+            </div>
+            <button class="gacha-button" onclick="startGacha()">
+                🎲 Create Groups!
+            </button>
+        </div>
+    </div>
+
+    <div class="gacha-animation" id="gachaAnimation">
+        <div class="gacha-card" id="gachaCard">
+            <div class="loading-text" id="loadingText">Summoning Groups...</div>
+            <div id="results"></div>
+            <button class="close-btn" onclick="closeGacha()" style="display: none" id="closeBtn">
+                Create New Groups
+            </button>
+        </div>
+    </div>
+
+    <div class="cutscene" id="cutscene">
+        <div class="legendary-particles" id="particles"></div>
+        <div class="cutscene-text" id="cutsceneText"></div>
+    </div>
+
+    <div class="legendary-cutscene" id="legendaryCutscene">
+        <div class="legendary-explosion" id="legendaryExplosion"></div>
+        <div class="motorcycle-container">
+            <div class="motorcycle-emoji" id="motorcycleEmoji">🏍️</div>
+            <div class="legendary-text" id="legendaryText">🏍️ LEGENDARY 🏍️</div>
+        </div>
+    </div>
+
+    <script>
+        const names = [
+            { name: "Mas Darrent", rarity: "legendary" }, { name: "Thorid", rarity: "epic" }, { name: "Indana", rarity: "epic" }, { name: "Syahrul", rarity: "epic" },
+            { name: "Zikran", rarity: "rare" }, { name: "Baqir", rarity: "rare" }, { name: "Yazid", rarity: "rare" }, { name: "Khadijah", rarity: "rare" }, { name: "Fauzih", rarity: "rare" }, { name: "Endro", rarity: "rare" }, { name: "Ainun", rarity: "rare" },
+            { name: "Rabin", rarity: "common" }, { name: "Asmir", rarity: "common" }, { name: "Putri", rarity: "common" }, { name: "Nabil", rarity: "common" }, { name: "Putra", rarity: "common" }, { name: "Ucim", rarity: "common" }, { name: "Salwa", rarity: "common" }, { name: "Nirwana", rarity: "common" }, { name: "Airin", rarity: "common" }, { name: "Nela", rarity: "common" }, { name: "Adit", rarity: "common" }, { name: "Fair", rarity: "common" }, { name: "Farel", rarity: "common" }, { name: "Sahil", rarity: "common" }, { name: "Dimas", rarity: "common" }
+        ];
+
+        function displayNames() {
+            const namesList = document.getElementById("namesList");
+            namesList.innerHTML = names.map(person => {
+                const rarityClass = `rarity-${person.rarity}`;
+                return `<span class="name-tag ${rarityClass}">${person.name} (${person.rarity.charAt(0).toUpperCase() + person.rarity.slice(1)})</span>`;
+            }).join("");
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function createLegendaryParticles() {
+            const particles = document.getElementById("particles");
+            particles.innerHTML = "";
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement("div");
+                particle.className = "particle";
+                particle.style.left = Math.random() * 100 + "%";
+                particle.style.top = Math.random() * 100 + "%";
+                particle.style.animationDelay = Math.random() * 1.5 + "s";
+                const colors = ["#ffd700", "#ff6b6b", "#4ecdc4", "#9b59b6", "#ff7f00"];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particles.appendChild(particle);
+            }
+        }
+
+        function createExplosionParticles() {
+            const explosion = document.getElementById("legendaryExplosion");
+            explosion.innerHTML = "";
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement("div");
+                particle.className = "explosion-particle";
+                particle.style.left = "50%";
+                particle.style.top = "50%";
+                particle.style.animationDelay = Math.random() * 0.5 + "s";
+                
+                const colors = ["#ffd700", "#ff6b6b", "#4ecdc4", "#9b59b6", "#ff7f00", "#ffffff"];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const dx = (Math.random() - 0.5) * 1000;
+                const dy = (Math.random() - 0.5) * 1000;
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
+                
+                explosion.appendChild(particle);
+            }
+        }
+
+        function playLegendaryCutscene(callback) {
+            const legendaryCutscene = document.getElementById("legendaryCutscene");
+            const motorcycleEmoji = document.getElementById("motorcycleEmoji");
+            const legendaryText = document.getElementById("legendaryText");
+            
+            // Reset positions
+            motorcycleEmoji.classList.remove("enter");
+            legendaryText.classList.remove("show");
+            legendaryCutscene.style.display = "flex";
+            
+            // Start the sequence
+            setTimeout(() => {
+                // Motorcycle enters from right
+                motorcycleEmoji.classList.add("enter");
+                
+                setTimeout(() => {
+                    // Create explosion effect
+                    createExplosionParticles();
+                    
+                    // Hide motorcycle and show legendary text
+                    motorcycleEmoji.style.opacity = "0";
+                    setTimeout(() => {
+                        legendaryText.classList.add("show");
+                        
+                        setTimeout(() => {
+                            legendaryCutscene.style.display = "none";
+                            // Reset for next time
+                            motorcycleEmoji.style.opacity = "1";
+                            if (callback) callback();
+                        }, 3000);
+                    }, 500);
+                }, 2000);
+            }, 500);
+        }
+
+        function playCutscene(rarity, callback) {
+            if (rarity === 'legendary') {
+                playLegendaryCutscene(callback);
+                return;
+            }
+            
+            const cutscene = document.getElementById("cutscene");
+            const cutsceneText = document.getElementById("cutsceneText");
+            const colors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f'];
+            const rarityColors = { common: '#2ecc71', rare: '#3498db', epic: '#9b59b6' };
+            
+            // Rarity-based timing configuration
+            const rarityConfig = {
+                common: { blackDuration: 800, colorCycles: 4, cycleSpeed: 400, rarityShowDuration: 1500, textShowDuration: 1500 },
+                rare: { blackDuration: 1200, colorCycles: 6, cycleSpeed: 350, rarityShowDuration: 2000, textShowDuration: 2000 },
+                epic: { blackDuration: 1800, colorCycles: 8, cycleSpeed: 300, rarityShowDuration: 2500, textShowDuration: 2500 }
+            };
+            
+            const config = rarityConfig[rarity];
+            
+            cutscene.style.display = 'flex';
+            cutscene.classList.remove('show-text');
+            cutsceneText.textContent = '';
+            cutscene.style.backgroundColor = 'black';
+            
+            setTimeout(() => {
+                let colorIndex = 0;
+                const cycleColors = () => {
+                    cutscene.style.backgroundColor = colors[colorIndex % colors.length];
+                    colorIndex++;
+                };
+                
+                const colorInterval = setInterval(cycleColors, config.cycleSpeed);
+                
+                setTimeout(() => {
+                    clearInterval(colorInterval);
+                    cutscene.style.backgroundColor = rarityColors[rarity];
+                    
+                    setTimeout(() => {
+                        cutsceneText.textContent = `✨ ${rarity.toUpperCase()}! ✨`;
+                        cutscene.classList.add('show-text');
+                        
+                        setTimeout(() => {
+                            cutscene.style.display = 'none';
+                            cutscene.classList.remove('show-text');
+                            if (callback) callback();
+                        }, config.textShowDuration);
+                    }, config.rarityShowDuration);
+                }, config.colorCycles * config.cycleSpeed);
+            }, config.blackDuration);
+        }
+
+        function startGacha() {
+            const groupCount = parseInt(document.getElementById("groupCount").value);
+            if (groupCount < 2 || groupCount > 13) {
+                alert("Please enter a number between 2 and 13 groups!");
+                return;
+            }
+
+            const animation = document.getElementById("gachaAnimation");
+            const loadingText = document.getElementById("loadingText");
+            const results = document.getElementById("results");
+            const closeBtn = document.getElementById("closeBtn");
+
+            animation.style.display = "flex";
+            loadingText.style.display = "block";
+            results.innerHTML = "";
+            closeBtn.style.display = "none";
+
+            setTimeout(() => {
+                const shuffledNames = shuffleArray(names);
+                const groups = [];
+                const totalNames = names.length;
+                const baseSize = Math.floor(totalNames / groupCount);
+                const remainder = totalNames % groupCount;
+                let nameIndex = 0;
+                
+                for (let i = 0; i < groupCount; i++) {
+                    const groupSize = i < groupCount - remainder ? baseSize : baseSize + 1;
+                    groups.push(shuffledNames.slice(nameIndex, nameIndex + groupSize));
+                    nameIndex += groupSize;
+                }
+                displayResults(groups);
+            }, 2000);
+        }
+
+        let currentRevealIndex = 0;
+        let orderedAssignments = [];
+
+        function displayResults(groups) {
+            const loadingText = document.getElementById("loadingText");
+            loadingText.style.display = "none";
+            orderedAssignments = [];
+            groups.forEach((group, groupIndex) => {
+                group.forEach(member => {
+                    orderedAssignments.push({
+                        name: member.name,
+                        rarity: member.rarity,
+                        group: groupIndex + 1,
+                        originalGroups: groups
+                    });
+                });
+            });
+            currentRevealIndex = 0;
+            showNextReveal();
+        }
+
+        function showNextReveal() {
+            if (currentRevealIndex >= orderedAssignments.length) {
+                showFinalResults(orderedAssignments[0].originalGroups);
+                return;
+            }
+            const assignment = orderedAssignments[currentRevealIndex];
+            playCutscene(assignment.rarity, () => showCurrentReveal());
+        }
+
+        function showCurrentReveal() {
+            const results = document.getElementById("results");
+            const assignment = orderedAssignments[currentRevealIndex];
+            const rarityClass = `rarity-${assignment.rarity}`;
+
+            results.innerHTML = `
+                <div class="single-reveal">
+                    <div class="rarity-banner ${rarityClass}">${assignment.rarity.toUpperCase()}</div>
+                    <div class="name-reveal ${rarityClass}">${assignment.name}</div>
+                    <div class="arrow">↓</div>
+                    <div class="group-assignment">Group ${assignment.group}</div>
+                    <div class="progress">${currentRevealIndex + 1} / ${orderedAssignments.length}</div>
+                    <button class="next-btn" onclick="nextReveal()">Next Pull ✨</button>
+                </div>
+            `;
+        }
+
+        function nextReveal() {
+            currentRevealIndex++;
+            showNextReveal();
+        }
+
+        function showFinalResults(groups) {
+            const results = document.getElementById("results");
+            const closeBtn = document.getElementById("closeBtn");
+            const orderedGroups = groups.map((group, index) => ({
+                members: group.sort((a, b) => a.name.localeCompare(b.name)),
+                index: index + 1
+            }));
+
+            results.innerHTML = `
+                <div class="final-results-title">🎉 Final Groups 🎉</div>
+                ${orderedGroups.map(groupData => `
+                    <div class="group-summary">
+                        <div class="group-result">Group ${groupData.index} (${groupData.members.length} members)</div>
+                        <div class="member-list">
+                            ${groupData.members.map(member => {
+                                const rarityClass = `member-${member.rarity}`;
+                                return `<span class="member ${rarityClass}">${member.name}</span>`;
+                            }).join("")}
+                        </div>
+                    </div>
+                `).join("")}
+            `;
+
+            setTimeout(() => {
+                closeBtn.style.display = "block";
+            }, 1000);
+        }
+
+        function closeGacha() {
+            document.getElementById("gachaAnimation").style.display = "none";
+        }
+
+        displayNames();
+    </script>
+</body>
+</html>
