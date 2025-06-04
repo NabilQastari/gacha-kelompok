@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color: white; font-family: Arial, sans-serif; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .header { text-align: center; margin-bottom: 30px; }
         .title { font-size: 3em; font-weight: bold; background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); margin-bottom: 10px; }
         .subtitle { font-size: 1.2em; opacity: 0.8; margin-bottom: 20px; }
@@ -25,7 +25,7 @@
         .gacha-button { background: linear-gradient(135deg, #ff6b6b, #ff8e8e, #ff6b6b); border: none; border-radius: 15px; color: white; font-size: 1.3em; font-weight: bold; padding: 15px 40px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3); text-transform: uppercase; letter-spacing: 1px; }
         .gacha-button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4); }
         .gacha-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .gacha-card { background: linear-gradient(135deg, #2a2a4a, #3a3a6a); border: 3px solid #ffd700; border-radius: 20px; padding: 40px; text-align: center; min-width: 300px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+        .gacha-card { background: linear-gradient(135deg, #2a2a4a, #3a3a6a); border: 3px solid #ffd700; border-radius: 20px; padding: 40px; text-align: center; min-width: 300px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); max-width: 95vw; max-height: 95vh; overflow-y: auto; }
         .loading-text { font-size: 1.5em; margin-bottom: 20px; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
@@ -37,11 +37,14 @@
         .particle { position: absolute; width: 4px; height: 4px; background: #ffd700; border-radius: 50%; animation: sparkle 1.5s infinite ease-in-out; }
         @keyframes sparkle { 0% { opacity: 0; transform: scale(0) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(180deg); } 100% { opacity: 0; transform: scale(0) rotate(360deg); } }
         
-        /* Special Legendary Cutscene Styles */
         .legendary-cutscene { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; display: none; justify-content: center; align-items: center; z-index: 1002; overflow: hidden; }
+        .legendary-cutscene.rainbow-phase { background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); background-size: 400% 400%; animation: rainbowBackground 1s infinite; }
+        @keyframes rainbowBackground { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .motorcycle-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        .motorcycle-emoji { font-size: 8em; position: absolute; right: -200px; top: 50%; transform: translateY(-50%); transition: all 2s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: drop-shadow(0 0 20px #ffd700); }
-        .motorcycle-emoji.enter { right: 50%; transform: translate(50%, -50%); }
+        .motorcycle-emoji { font-size: 8em; position: absolute; right: -200px; top: 50%; transform: translateY(-50%); transition: all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: drop-shadow(0 0 20px #ffd700); }
+        .motorcycle-emoji.phase1 { right: 120%; transform: translateY(-50%) scaleX(-1); }
+        .motorcycle-emoji.phase2 { right: -200px; transform: translateY(-50%); }
+        .motorcycle-emoji.phase3 { right: 50%; transform: translate(50%, -50%); }
         .legendary-text { font-size: 6em; font-weight: bold; opacity: 0; text-align: center; background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #9b59b6); background-size: 400% 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbowText 2s infinite; text-shadow: 0 0 30px #ffd700; transition: opacity 1s ease; }
         .legendary-text.show { opacity: 1; }
         @keyframes rainbowText { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
@@ -69,16 +72,44 @@
         .next-btn { background: linear-gradient(135deg, #4ecdc4, #44a08d); border: none; border-radius: 12px; color: white; font-size: 1.2em; font-weight: bold; padding: 12px 25px; cursor: pointer; margin-top: 20px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px; }
         .next-btn:hover { transform: translateY(-2px); }
         .close-btn { background: rgba(255, 255, 255, 0.2); border: none; color: white; padding: 10px 20px; border-radius: 10px; margin-top: 20px; cursor: pointer; transition: background 0.3s ease; }
-        .final-results-title { font-size: 2em; font-weight: bold; color: #ffd700; margin-bottom: 20px; }
-        .group-result { font-size: 1.3em; font-weight: bold; color: #ffd700; margin: 10px 0; }
-        .member-list { background: rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 15px; margin: 10px 0; }
-        .member { display: inline-block; color: white; padding: 5px 12px; margin: 3px; border-radius: 20px; font-size: 0.9em; }
-        .member-legendary { background: linear-gradient(135deg, #ff6b6b, #ffd700, #4ecdc4); }
-        .member-epic { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .member-rare { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .member-common { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-        .group-summary { margin-bottom: 20px; }
+        
+        .group-header { text-align: center; margin-bottom: 30px; }
+        .group-title { font-size: 4em; font-weight: bold; color: #ffd700; text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); margin-bottom: 10px; animation: glow 2s ease-in-out infinite alternate; }
+        @keyframes glow { from { text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); } to { text-shadow: 0 0 50px rgba(255, 215, 0, 0.8); } }
+        .group-subtitle { font-size: 1.5em; color: #ff6b6b; opacity: 0.9; }
+        
+        /* Fixed Horizontal Layout for Final Results */
+        .final-results-container { width: 100%; max-width: none; height: 100%; }
+        .final-results-title { font-size: 2.5em; font-weight: bold; color: #ffd700; margin-bottom: 40px; text-align: center; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+        .groups-grid { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; scrollbar-width: 10px; scrollbar-color: rgba(255, 215, 0, 0.5) rgba(255, 255, 255, 0.1); }
+        .groups-grid::-webkit-scrollbar { height: 12px; }
+        .groups-grid::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .groups-grid::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.5); border-radius: 10px; }
+        .groups-grid::-webkit-scrollbar-thumb:hover { background: rgba(255, 215, 0, 0.7); }
+        .group-card { background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)); border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 25px; padding: 30px; backdrop-filter: blur(15px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; min-width: 350px; flex-shrink: 0; }
+        .group-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); border-color: rgba(255, 215, 0, 0.4); }
+        .group-card-header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid rgba(255, 215, 0, 0.2); padding-bottom: 15px; }
+        .group-card-title { font-size: 2.2em; font-weight: bold; color: #ffd700; margin-bottom: 8px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        .group-card-subtitle { font-size: 1.1em; color: #bbb; opacity: 0.8; }
+        .group-members { display: flex; flex-direction: column; gap: 15px; max-height: 550px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 215, 0, 0.3) transparent; }
+        .group-members::-webkit-scrollbar { width: 8px; }
+        .group-members::-webkit-scrollbar-track { background: transparent; }
+        .group-members::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.3); border-radius: 4px; }
+        .member-card { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-radius: 20px; transition: all 0.3s ease; position: relative; overflow: hidden; min-height: 60px; }
+        .member-card-legendary { background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 215, 0, 0.15)); border: 2px solid rgba(255, 215, 0, 0.4); }
+        .member-card-epic { background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(142, 68, 173, 0.15)); border: 2px solid rgba(155, 89, 182, 0.4); }
+        .member-card-rare { background: linear-gradient(135deg, rgba(52, 152, 219, 0.15), rgba(41, 128, 185, 0.15)); border: 2px solid rgba(52, 152, 219, 0.4); }
+        .member-card-common { background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(39, 174, 96, 0.15)); border: 2px solid rgba(46, 204, 113, 0.4); }
+        .member-name { font-size: 1.2em; font-weight: 600; color: white; flex-grow: 1; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+        .member-rarity-badge { font-size: 0.85em; font-weight: bold; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        .member-rarity-badge.legendary { background: linear-gradient(45deg, #ff6b6b, #ffd700); color: white; }
+        .member-rarity-badge.epic { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }
+        .member-rarity-badge.rare { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+        .member-rarity-badge.common { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
         .single-reveal { text-align: center; }
+        .skip-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid rgba(255, 255, 255, 0.5); padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; backdrop-filter: blur(10px); transition: all 0.3s ease; z-index: 1000; }
+        
+        @media (max-width: 768px) { .group-card { min-width: 280px; padding: 20px; } .group-card-title { font-size: 1.8em; } .final-results-title { font-size: 2em; } .groups-grid { padding: 10px 0; gap: 15px; } }
     </style>
 </head>
 <body>
@@ -106,6 +137,7 @@
 
     <div class="gacha-animation" id="gachaAnimation">
         <div class="gacha-card" id="gachaCard">
+            <button class="skip-btn" onclick="skipToFinal()" id="skipBtn" style="display: none">Skip All ⚡</button>
             <div class="loading-text" id="loadingText">Summoning Groups...</div>
             <div id="results"></div>
             <button class="close-btn" onclick="closeGacha()" style="display: none" id="closeBtn">
@@ -133,6 +165,9 @@
             { name: "Zikran", rarity: "rare" }, { name: "Baqir", rarity: "rare" }, { name: "Yazid", rarity: "rare" }, { name: "Khadijah", rarity: "rare" }, { name: "Fauzih", rarity: "rare" }, { name: "Endro", rarity: "rare" }, { name: "Ainun", rarity: "rare" },
             { name: "Rabin", rarity: "common" }, { name: "Asmir", rarity: "common" }, { name: "Putri", rarity: "common" }, { name: "Nabil", rarity: "common" }, { name: "Putra", rarity: "common" }, { name: "Ucim", rarity: "common" }, { name: "Salwa", rarity: "common" }, { name: "Nirwana", rarity: "common" }, { name: "Airin", rarity: "common" }, { name: "Nela", rarity: "common" }, { name: "Adit", rarity: "common" }, { name: "Fair", rarity: "common" }, { name: "Farel", rarity: "common" }, { name: "Sahil", rarity: "common" }, { name: "Dimas", rarity: "common" }
         ];
+
+        let globalGroups = [];
+        let isSkipping = false;
 
         function displayNames() {
             const namesList = document.getElementById("namesList");
@@ -189,41 +224,71 @@
         }
 
         function playLegendaryCutscene(callback) {
+            if (isSkipping) {
+                if (callback) callback();
+                return;
+            }
+
             const legendaryCutscene = document.getElementById("legendaryCutscene");
             const motorcycleEmoji = document.getElementById("motorcycleEmoji");
             const legendaryText = document.getElementById("legendaryText");
             
-            // Reset positions
-            motorcycleEmoji.classList.remove("enter");
+            // Reset all states
+            motorcycleEmoji.classList.remove("phase1", "phase2", "phase3");
             legendaryText.classList.remove("show");
+            legendaryCutscene.classList.remove("rainbow-phase");
             legendaryCutscene.style.display = "flex";
             
-            // Start the sequence
+            // Phase 1: Rainbow background for 3 seconds
+            legendaryCutscene.classList.add("rainbow-phase");
+            
             setTimeout(() => {
-                // Motorcycle enters from right
-                motorcycleEmoji.classList.add("enter");
+                // Remove rainbow background and start motorcycle sequence
+                legendaryCutscene.classList.remove("rainbow-phase");
+                legendaryCutscene.style.background = "black";
                 
+                // Phase 2: Motorcycle moves from right to left (flipped)
                 setTimeout(() => {
-                    // Create explosion effect
-                    createExplosionParticles();
+                    motorcycleEmoji.classList.add("phase1");
                     
-                    // Hide motorcycle and show legendary text
-                    motorcycleEmoji.style.opacity = "0";
+                    // Phase 3: Motorcycle moves back to right
                     setTimeout(() => {
-                        legendaryText.classList.add("show");
+                        motorcycleEmoji.classList.remove("phase1");
+                        motorcycleEmoji.classList.add("phase2");
                         
+                        // Phase 4: Motorcycle moves to center
                         setTimeout(() => {
-                            legendaryCutscene.style.display = "none";
-                            // Reset for next time
-                            motorcycleEmoji.style.opacity = "1";
-                            if (callback) callback();
-                        }, 3000);
-                    }, 500);
-                }, 2000);
-            }, 500);
+                            motorcycleEmoji.classList.remove("phase2");
+                            motorcycleEmoji.classList.add("phase3");
+                            
+                            // Create explosion and show text
+                            setTimeout(() => {
+                                createExplosionParticles();
+                                motorcycleEmoji.style.opacity = "0";
+                                
+                                setTimeout(() => {
+                                    legendaryText.classList.add("show");
+                                    
+                                    setTimeout(() => {
+                                        legendaryCutscene.style.display = "none";
+                                        motorcycleEmoji.style.opacity = "1";
+                                        motorcycleEmoji.classList.remove("phase1", "phase2", "phase3");
+                                        if (callback) callback();
+                                    }, 3000);
+                                }, 500);
+                            }, 1500);
+                        }, 1500);
+                    }, 1500);
+                }, 500);
+            }, 3000);
         }
 
         function playCutscene(rarity, callback) {
+            if (isSkipping) {
+                if (callback) callback();
+                return;
+            }
+
             if (rarity === 'legendary') {
                 playLegendaryCutscene(callback);
                 return;
@@ -234,7 +299,6 @@
             const colors = ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f'];
             const rarityColors = { common: '#2ecc71', rare: '#3498db', epic: '#9b59b6' };
             
-            // Rarity-based timing configuration
             const rarityConfig = {
                 common: { blackDuration: 800, colorCycles: 4, cycleSpeed: 400, rarityShowDuration: 1500, textShowDuration: 1500 },
                 rare: { blackDuration: 1200, colorCycles: 6, cycleSpeed: 350, rarityShowDuration: 2000, textShowDuration: 2000 },
@@ -275,6 +339,23 @@
             }, config.blackDuration);
         }
 
+        function showGroupHeader(groupNumber, callback) {
+            if (isSkipping) {
+                if (callback) callback();
+                return;
+            }
+
+            const results = document.getElementById("results");
+            results.innerHTML = `
+                <div class="group-header">
+                    <div class="group-title">Group ${groupNumber}</div>
+                    <div class="group-subtitle">🎲 Rolling for members... 🎲</div>
+                </div>
+            `;
+            
+            setTimeout(callback, 2000);
+        }
+
         function startGacha() {
             const groupCount = parseInt(document.getElementById("groupCount").value);
             if (groupCount < 2 || groupCount > 13) {
@@ -286,11 +367,14 @@
             const loadingText = document.getElementById("loadingText");
             const results = document.getElementById("results");
             const closeBtn = document.getElementById("closeBtn");
+            const skipBtn = document.getElementById("skipBtn");
 
             animation.style.display = "flex";
             loadingText.style.display = "block";
             results.innerHTML = "";
             closeBtn.style.display = "none";
+            skipBtn.style.display = "none";
+            isSkipping = false;
 
             setTimeout(() => {
                 const shuffledNames = shuffleArray(names);
@@ -305,16 +389,24 @@
                     groups.push(shuffledNames.slice(nameIndex, nameIndex + groupSize));
                     nameIndex += groupSize;
                 }
+                
+                globalGroups = groups;
                 displayResults(groups);
             }, 2000);
         }
 
         let currentRevealIndex = 0;
         let orderedAssignments = [];
+        let currentGroupIndex = 0;
+        let currentMemberInGroup = 0;
 
         function displayResults(groups) {
             const loadingText = document.getElementById("loadingText");
+            const skipBtn = document.getElementById("skipBtn");
+            
             loadingText.style.display = "none";
+            skipBtn.style.display = "block";
+            
             orderedAssignments = [];
             groups.forEach((group, groupIndex) => {
                 group.forEach(member => {
@@ -326,8 +418,23 @@
                     });
                 });
             });
+            
             currentRevealIndex = 0;
-            showNextReveal();
+            currentGroupIndex = 0;
+            currentMemberInGroup = 0;
+            showGroupHeader(1, () => showNextReveal());
+        }
+
+        function skipToFinal() {
+            isSkipping = true;
+            const skipBtn = document.getElementById("skipBtn");
+            skipBtn.style.display = "none";
+            
+            // Hide any active cutscenes
+            document.getElementById("cutscene").style.display = "none";
+            document.getElementById("legendaryCutscene").style.display = "none";
+            
+            showFinalResults(globalGroups);
         }
 
         function showNextReveal() {
@@ -335,11 +442,23 @@
                 showFinalResults(orderedAssignments[0].originalGroups);
                 return;
             }
+            
             const assignment = orderedAssignments[currentRevealIndex];
-            playCutscene(assignment.rarity, () => showCurrentReveal());
+            const previousAssignment = currentRevealIndex > 0 ? orderedAssignments[currentRevealIndex - 1] : null;
+            
+            // Check if we need to show a new group header
+            if (previousAssignment && assignment.group !== previousAssignment.group) {
+                showGroupHeader(assignment.group, () => {
+                    playCutscene(assignment.rarity, () => showCurrentReveal());
+                });
+            } else {
+                playCutscene(assignment.rarity, () => showCurrentReveal());
+            }
         }
 
         function showCurrentReveal() {
+            if (isSkipping) return;
+
             const results = document.getElementById("results");
             const assignment = orderedAssignments[currentRevealIndex];
             const rarityClass = `rarity-${assignment.rarity}`;
@@ -364,24 +483,37 @@
         function showFinalResults(groups) {
             const results = document.getElementById("results");
             const closeBtn = document.getElementById("closeBtn");
+            const skipBtn = document.getElementById("skipBtn");
+            
+            skipBtn.style.display = "none";
+            
             const orderedGroups = groups.map((group, index) => ({
                 members: group.sort((a, b) => a.name.localeCompare(b.name)),
                 index: index + 1
             }));
 
             results.innerHTML = `
-                <div class="final-results-title">🎉 Final Groups 🎉</div>
-                ${orderedGroups.map(groupData => `
-                    <div class="group-summary">
-                        <div class="group-result">Group ${groupData.index} (${groupData.members.length} members)</div>
-                        <div class="member-list">
-                            ${groupData.members.map(member => {
-                                const rarityClass = `member-${member.rarity}`;
-                                return `<span class="member ${rarityClass}">${member.name}</span>`;
-                            }).join("")}
-                        </div>
+                <div class="final-results-container">
+                    <div class="final-results-title">🎉 Final Groups 🎉</div>
+                    <div class="groups-grid">
+                        ${orderedGroups.map(groupData => `
+                            <div class="group-card">
+                                <div class="group-card-header">
+                                    <div class="group-card-title">Group ${groupData.index}</div>
+                                    <div class="group-card-subtitle">${groupData.members.length} members</div>
+                                </div>
+                                <div class="group-members">
+                                    ${groupData.members.map(member => `
+                                        <div class="member-card member-card-${member.rarity}">
+                                            <div class="member-name">${member.name}</div>
+                                            <div class="member-rarity-badge ${member.rarity}">${member.rarity}</div>
+                                        </div>
+                                    `).join("")}
+                                </div>
+                            </div>
+                        `).join("")}
                     </div>
-                `).join("")}
+                </div>
             `;
 
             setTimeout(() => {
@@ -391,6 +523,7 @@
 
         function closeGacha() {
             document.getElementById("gachaAnimation").style.display = "none";
+            isSkipping = false;
         }
 
         displayNames();
